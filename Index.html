@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Reel Downloader</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #d62976; /* Instagram-like pink */
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #dbdbdb;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0077c5;
+        }
+        button:disabled {
+            background-color: #b2dffc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 1.5rem;
+        }
+        .error {
+            color: red;
+            font-size: 0.9rem;
+        }
+        video {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+            background: black;
+        }
+        .info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Reel Downloader</h1>
+    <input type="text" id="igUrl" placeholder="Paste Instagram URL here...">
+    <button id="downloadBtn" onclick="fetchVideo()">Get Video</button>
+    
+    <div id="result"></div>
+</div>
+
+<script>
+    async function fetchVideo() {
+        const urlInput = document.getElementById('igUrl').value.trim();
+        const resultDiv = document.getElementById('result');
+        const btn = document.getElementById('downloadBtn');
+
+        // Basic URL validation
+        if (!urlInput.match(/^(https?:\/\/)?(www\.)?(instagram\.com|instagr\.am)\/.*$/)) {
+            resultDiv.innerHTML = '<p class="error">Please enter a valid Instagram URL.</p>';
+            return;
+        }
+
+        // UI updates for loading
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+        resultDiv.innerHTML = "<p>Fetching video details...</p>";
+
+        const apiUrl = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(urlInput)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.error) {
+                resultDiv.innerHTML = '<p class="error">Failed to extract video. It might be private or invalid.</p>';
+            } else {
+                const videoData = data.result;
+                
+                // Construct the result HTML
+                resultDiv.innerHTML = `
+                    <video controls>
+                        <source src="${videoData.url}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="info">
+                        <strong>Quality:</strong> ${videoData.quality || 'N/A'}<br>
+                        <strong>Duration:</strong> ${videoData.duration || 'N/A'}<br>
+                        <strong>Size:</strong> ${videoData.formattedSize || 'N/A'}
+                    </div>
+                    <a href="${videoData.url}" class="download-btn" target="_blank" download="instagram_reel.mp4">
+                        Download Video
+                    </a>
+                `;
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            resultDiv.innerHTML = `<p class="error">An error occurred while connecting to the API.</p>`;
+        } finally {
+            // Reset button state
+            btn.disabled = false;
+            btn.innerText = "Get Video";
+        }
+    }
+</script>
+
+</body>
+</html>
