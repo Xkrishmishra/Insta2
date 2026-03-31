@@ -9,6 +9,7 @@
             --primary: #833ab4;
             --secondary: #fd1d1d;
             --accent: #fcb045;
+            --yt-red: #FF0000;
             --dark: #0f0f0f;
             --card: #1a1a1a;
             --text: #e0e0e0;
@@ -50,17 +51,19 @@
             background: #252525;
             padding: 5px;
             border-radius: 12px;
-            margin: 25px 0;
+            margin: 20px 0;
+            gap: 5px;
         }
 
         .tab {
             flex: 1;
-            padding: 10px;
+            padding: 10px 5px;
             cursor: pointer;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: 0.3s;
+            white-space: nowrap;
         }
 
         .tab.active {
@@ -73,7 +76,7 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        input[type="text"], input[type="file"] {
+        input[type="text"], input[type="file"], select {
             width: 100%;
             padding: 14px;
             background: #252525;
@@ -98,10 +101,9 @@
 
         .btn-insta { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; }
         .btn-photo { background: #ffffff; color: #000; }
+        .btn-yt { background: var(--yt-red); color: white; }
         .btn:active { transform: scale(0.98); }
 
-        #resultInsta, #resultPhoto { margin-top: 20px; }
-        
         .loader {
             display: none;
             width: 30px;
@@ -115,15 +117,9 @@
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .video-box video { width: 100%; border-radius: 12px; }
-        .link-box {
-            background: #252525;
-            padding: 15px;
-            border-radius: 12px;
-            word-break: break-all;
-            border: 1px dashed var(--accent);
-        }
-        .link-box a { color: var(--accent); text-decoration: none; font-weight: bold; }
+        .result-box { margin-top: 20px; text-align: left; background: #252525; padding: 15px; border-radius: 15px; border: 1px solid #333;}
+        .result-box img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
+        .dl-link { display: block; text-align: center; background: #28a745; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;}
     </style>
 </head>
 <body>
@@ -132,15 +128,27 @@
     <h1>𝐓ᴇᴀᴍ Kʀɪsʜ Hub</h1>
     
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('insta', this)">𝐈ɴsᴛᴀ Dʟ</div>
+        <div class="tab active" onclick="switchTab('insta', this)">𝐈ɴsᴛᴀ</div>
+        <div class="tab" onclick="switchTab('yt', this)">𝐘𝐨𝐮𝐓𝐮𝐛𝐞</div>
         <div class="tab" onclick="switchTab('photo', this)">𝐏ʜᴏᴛᴏ ᴛᴏ Lɪɴᴋ</div>
     </div>
 
     <div id="insta" class="section active">
-        <input type="text" id="instaUrl" placeholder="Paste Instagram Link here...">
+        <input type="text" id="instaUrl" placeholder="Paste Instagram Link...">
         <button class="btn btn-insta" onclick="downloadInsta()">Get Media</button>
         <div id="loaderInsta" class="loader"></div>
         <div id="resultInsta"></div>
+    </div>
+
+    <div id="yt" class="section">
+        <input type="text" id="ytUrl" placeholder="Paste YouTube Link...">
+        <select id="ytType">
+            <option value="mp4">Video (MP4)</option>
+            <option value="mp3">Audio (MP3)</option>
+        </select>
+        <button class="btn btn-yt" onclick="downloadYT()">Get YouTube Media</button>
+        <div id="loaderYT" class="loader"></div>
+        <div id="resultYT"></div>
     </div>
 
     <div id="photo" class="section">
@@ -159,73 +167,71 @@
         el.classList.add('active');
     }
 
-    // Tool 1: Instagram Downloader
+    const PROXY = "https://corsproxy.io/?";
+
+    // Tool 1: Instagram
     async function downloadInsta() {
         const url = document.getElementById('instaUrl').value;
         const resDiv = document.getElementById('resultInsta');
         const loader = document.getElementById('loaderInsta');
-        
-        if(!url) return alert("Paste a URL first!");
-        
-        resDiv.innerHTML = "";
-        loader.style.display = "block";
+        if(!url) return alert("Paste a URL!");
+        resDiv.innerHTML = ""; loader.style.display = "block";
+        try {
+            const response = await fetch(PROXY + encodeURIComponent(`https://insta-dl.hazex.workers.dev/?url=${url}`));
+            const data = await response.json();
+            const media = data.result;
+            resDiv.innerHTML = `<div class="result-box"><video width="100%" controls src="${media.url}"></video><a href="${media.url}" target="_blank" class="dl-link">Download MP4</a></div>`;
+        } catch(e) { resDiv.innerHTML = "Error fetching Instagram media."; }
+        finally { loader.style.display = "none"; }
+    }
 
-        const proxy = "https://corsproxy.io/?";
-        const api = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(url)}`;
+    // Tool 2: YouTube (Using shrutibots.site API)
+    async function downloadYT() {
+        const url = document.getElementById('ytUrl').value;
+        const type = document.getElementById('ytType').value;
+        const resDiv = document.getElementById('resultYT');
+        const loader = document.getElementById('loaderYT');
+        if(!url) return alert("Paste YouTube URL!");
+        resDiv.innerHTML = ""; loader.style.display = "block";
+
+        const apiEndpoint = type === 'mp3' ? 'yta' : 'ytv';
+        const apiUrl = `https://shrutibots.site/api/${apiEndpoint}?url=${encodeURIComponent(url)}`;
 
         try {
-            const response = await fetch(proxy + encodeURIComponent(api));
+            const response = await fetch(PROXY + encodeURIComponent(apiUrl));
             const data = await response.json();
-            if(data.error) throw new Error();
-
-            const media = data.result;
-            resDiv.innerHTML = `
-                <div class="video-box">
-                    <video controls src="${media.url}"></video>
-                    <p>Quality: ${media.quality} | Size: ${media.formattedSize}</p>
-                    <a href="${media.url}" target="_blank" style="color:white; background:#28a745; padding:10px; display:block; border-radius:8px; text-decoration:none;">Download Now</a>
-                </div>`;
+            
+            if(data.result) {
+                const item = data.result;
+                resDiv.innerHTML = `
+                    <div class="result-box">
+                        <img src="${item.thumb || item.image}" alt="thumb">
+                        <p><b>Title:</b> ${item.title}</p>
+                        <p><b>Channel:</b> ${item.channel || 'N/A'}</p>
+                        <a href="${item.dl_url || item.download}" target="_blank" class="dl-link">Download ${type.toUpperCase()}</a>
+                    </div>`;
+            } else { throw new Error(); }
         } catch(e) {
-            resDiv.innerHTML = "<p style='color:red;'>Failed to fetch media.</p>";
+            resDiv.innerHTML = "<p style='color:red;'>Failed to fetch YouTube media. API might be down.</p>";
         } finally { loader.style.display = "none"; }
     }
 
-    // Tool 2: Photo to Link (Catbox)
+    // Tool 3: Photo to Link
     async function uploadToCatbox() {
         const fileInput = document.getElementById('photoFile');
         const resDiv = document.getElementById('resultPhoto');
         const loader = document.getElementById('loaderPhoto');
-
         if(fileInput.files.length === 0) return alert("Select a file!");
-
-        resDiv.innerHTML = "";
-        loader.style.display = "block";
-
+        resDiv.innerHTML = ""; loader.style.display = "block";
         const formData = new FormData();
         formData.append('reqtype', 'fileupload');
         formData.append('fileToUpload', fileInput.files[0]);
-
         try {
-            // Note: Catbox usually requires a proxy if uploaded directly from browser due to CORS
-            const proxy = "https://corsproxy.io/?";
-            const response = await fetch(proxy + encodeURIComponent('https://catbox.moe/user/api.php'), {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(PROXY + encodeURIComponent('https://catbox.moe/user/api.php'), { method: 'POST', body: formData });
             const link = await response.text();
-
-            if(link.includes('https')) {
-                resDiv.innerHTML = `
-                    <div class="link-box">
-                        <p>File Uploaded Successfully!</p>
-                        <a href="${link.trim()}" target="_blank">${link.trim()}</a>
-                    </div>`;
-            } else {
-                throw new Error();
-            }
-        } catch(e) {
-            resDiv.innerHTML = "<p style='color:red;'>Upload failed. Use the Telegram Bot for large files.</p>";
-        } finally { loader.style.display = "none"; }
+            resDiv.innerHTML = `<div class="result-box"><p>Link Generated:</p><a href="${link.trim()}" target="_blank" style="color:var(--accent)">${link.trim()}</a></div>`;
+        } catch(e) { resDiv.innerHTML = "Upload failed."; }
+        finally { loader.style.display = "none"; }
     }
 </script>
 
