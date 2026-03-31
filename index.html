@@ -3,207 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InstaSnap | Reels Downloader</title>
+    <title>𝐓ᴇᴀᴍ Kʀɪsʜ | All-in-One Hub</title>
     <style>
         :root {
             --primary: #833ab4;
             --secondary: #fd1d1d;
             --accent: #fcb045;
-            --dark: #121212;
-            --card: #1e1e1e;
+            --dark: #0f0f0f;
+            --card: #1a1a1a;
+            --text: #e0e0e0;
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--dark);
-            color: #ffffff;
+            color: var(--text);
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
             background: var(--card);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border: 1px solid #2a2a2a;
             text-align: center;
-            border: 1px solid #333;
         }
 
         h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
             background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p.subtitle {
-            color: #aaa;
-            margin-bottom: 25px;
+        .tabs {
+            display: flex;
+            background: #252525;
+            padding: 5px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
             font-size: 0.9rem;
+            font-weight: 600;
+            transition: 0.3s;
         }
 
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            background: #2a2a2a;
-            border: 2px solid #333;
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--secondary);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
+        .tab.active {
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
         }
 
-        button:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .section { display: none; animation: fadeIn 0.4s; }
+        .section.active { display: block; }
 
-        #result { margin-top: 25px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .video-card {
-            background: #2a2a2a;
-            border-radius: 15px;
-            overflow: hidden;
-            padding-bottom: 15px;
-        }
-
-        video { width: 100%; display: block; }
-
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 15px;
-            font-size: 0.8rem;
-            text-align: left;
-        }
-
-        .stat-item {
-            background: #333;
-            padding: 8px;
-            border-radius: 5px;
-        }
-
-        .download-link {
-            display: block;
-            margin: 0 15px;
-            padding: 12px;
-            background: #28a745;
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 12px;
             color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
         }
 
-        /* Spinner Animation */
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: var(--secondary);
-            border-radius: 50%;
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-insta { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; }
+        .btn-photo { background: #ffffff; color: #000; }
+        .btn:active { transform: scale(0.98); }
+
+        #resultInsta, #resultPhoto { margin-top: 20px; }
+        
+        .loader {
+            display: none;
             width: 30px;
             height: 30px;
+            border: 3px solid #333;
+            border-top-color: var(--secondary);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
-            display: none;
+            margin: 15px auto;
         }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .video-box video { width: 100%; border-radius: 12px; }
+        .link-box {
+            background: #252525;
+            padding: 15px;
+            border-radius: 12px;
+            word-break: break-all;
+            border: 1px dashed var(--accent);
+        }
+        .link-box a { color: var(--accent); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>InstaSnap</h1>
-    <p class="subtitle">Download Instagram Reels & Videos in seconds.</p>
+    <h1>𝐓ᴇᴀᴍ Kʀɪsʜ Hub</h1>
     
-    <div class="input-group">
-        <input type="text" id="urlInput" placeholder="Paste link here (e.g. instagram.com/reels/...)">
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('insta', this)">𝐈ɴsᴛᴀ Dʟ</div>
+        <div class="tab" onclick="switchTab('photo', this)">𝐏ʜᴏᴛᴏ ᴛᴏ Lɪɴᴋ</div>
     </div>
-    
-    <button id="mainBtn" onclick="handleDownload()">Download Now</button>
-    
-    <div id="loader" class="spinner"></div>
-    <div id="result"></div>
+
+    <div id="insta" class="section active">
+        <input type="text" id="instaUrl" placeholder="Paste Instagram Link here...">
+        <button class="btn btn-insta" onclick="downloadInsta()">Get Media</button>
+        <div id="loaderInsta" class="loader"></div>
+        <div id="resultInsta"></div>
+    </div>
+
+    <div id="photo" class="section">
+        <input type="file" id="photoFile" accept="image/*,video/*">
+        <button class="btn btn-photo" onclick="uploadToCatbox()">Generate Link</button>
+        <div id="loaderPhoto" class="loader"></div>
+        <div id="resultPhoto"></div>
+    </div>
 </div>
 
 <script>
-    async function handleDownload() {
-        const input = document.getElementById('urlInput');
-        const result = document.getElementById('result');
-        const loader = document.getElementById('loader');
-        const btn = document.getElementById('mainBtn');
+    function switchTab(id, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // Tool 1: Instagram Downloader
+    async function downloadInsta() {
+        const url = document.getElementById('instaUrl').value;
+        const resDiv = document.getElementById('resultInsta');
+        const loader = document.getElementById('loaderInsta');
         
-        const url = input.value.trim();
-        if (!url) return alert("Please paste a URL!");
-
-        // Reset UI
-        result.innerHTML = "";
+        if(!url) return alert("Paste a URL first!");
+        
+        resDiv.innerHTML = "";
         loader.style.display = "block";
-        btn.disabled = true;
 
-        // Use a CORS proxy to bypass browser restrictions
-        const proxy = "https://corsproxy.io/?"; 
-        const apiUrl = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(url)}`;
+        const proxy = "https://corsproxy.io/?";
+        const api = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(url)}`;
 
         try {
-            const response = await fetch(proxy + encodeURIComponent(apiUrl));
+            const response = await fetch(proxy + encodeURIComponent(api));
             const data = await response.json();
+            if(data.error) throw new Error();
 
-            if (data.error || !data.result) {
-                result.innerHTML = `<p style="color:#ff4d4d">Error: Could not find video. Check the link and try again.</p>`;
+            const media = data.result;
+            resDiv.innerHTML = `
+                <div class="video-box">
+                    <video controls src="${media.url}"></video>
+                    <p>Quality: ${media.quality} | Size: ${media.formattedSize}</p>
+                    <a href="${media.url}" target="_blank" style="color:white; background:#28a745; padding:10px; display:block; border-radius:8px; text-decoration:none;">Download Now</a>
+                </div>`;
+        } catch(e) {
+            resDiv.innerHTML = "<p style='color:red;'>Failed to fetch media.</p>";
+        } finally { loader.style.display = "none"; }
+    }
+
+    // Tool 2: Photo to Link (Catbox)
+    async function uploadToCatbox() {
+        const fileInput = document.getElementById('photoFile');
+        const resDiv = document.getElementById('resultPhoto');
+        const loader = document.getElementById('loaderPhoto');
+
+        if(fileInput.files.length === 0) return alert("Select a file!");
+
+        resDiv.innerHTML = "";
+        loader.style.display = "block";
+
+        const formData = new FormData();
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', fileInput.files[0]);
+
+        try {
+            // Note: Catbox usually requires a proxy if uploaded directly from browser due to CORS
+            const proxy = "https://corsproxy.io/?";
+            const response = await fetch(proxy + encodeURIComponent('https://catbox.moe/user/api.php'), {
+                method: 'POST',
+                body: formData
+            });
+            const link = await response.text();
+
+            if(link.includes('https')) {
+                resDiv.innerHTML = `
+                    <div class="link-box">
+                        <p>File Uploaded Successfully!</p>
+                        <a href="${link.trim()}" target="_blank">${link.trim()}</a>
+                    </div>`;
             } else {
-                const res = data.result;
-                result.innerHTML = `
-                    <div class="video-card">
-                        <video controls poster="${res.thumbnail || ''}">
-                            <source src="${res.url}" type="video/mp4">
-                        </video>
-                        <div class="stats">
-                            <div class="stat-item"><b>Quality:</b> ${res.quality || 'HD'}</div>
-                            <div class="stat-item"><b>Size:</b> ${res.formattedSize || 'N/A'}</div>
-                            <div class="stat-item"><b>Duration:</b> ${res.duration || 'N/A'}</div>
-                            <div class="stat-item"><b>Format:</b> ${res.extension || 'mp4'}</div>
-                        </div>
-                        <a href="${res.url}" class="download-link" target="_blank">SAVE TO DEVICE</a>
-                    </div>
-                `;
+                throw new Error();
             }
-        } catch (err) {
-            result.innerHTML = `<p style="color:#ff4d4d">Connection Error. Try again later.</p>`;
-        } finally {
-            loader.style.display = "none";
-            btn.disabled = false;
-        }
+        } catch(e) {
+            resDiv.innerHTML = "<p style='color:red;'>Upload failed. Use the Telegram Bot for large files.</p>";
+        } finally { loader.style.display = "none"; }
     }
 </script>
 
