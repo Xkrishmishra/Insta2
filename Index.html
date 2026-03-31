@@ -3,152 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Reel Downloader</title>
+    <title>InstaSnap | Reels Downloader</title>
     <style>
+        :root {
+            --primary: #833ab4;
+            --secondary: #fd1d1d;
+            --accent: #fcb045;
+            --dark: #121212;
+            --card: #1e1e1e;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fafafa;
-            color: #333;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--dark);
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
+
         .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
+            border: 1px solid #333;
         }
+
         h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: #d62976; /* Instagram-like pink */
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
+        p.subtitle {
+            color: #aaa;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
         input {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 1rem;
-            border: 1px solid #dbdbdb;
-            border-radius: 6px;
-            box-sizing: border-box;
+            padding: 15px;
+            background: #2a2a2a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            color: white;
             font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #0095f6;
+            padding: 15px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
+            font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
         }
-        button:hover {
-            background-color: #0077c5;
+
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #result { margin-top: 25px; }
+
+        .video-card {
+            background: #2a2a2a;
+            border-radius: 15px;
+            overflow: hidden;
+            padding-bottom: 15px;
         }
-        button:disabled {
-            background-color: #b2dffc;
-            cursor: not-allowed;
-        }
-        #result {
-            margin-top: 1.5rem;
-        }
-        .error {
-            color: red;
-            font-size: 0.9rem;
-        }
-        video {
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 1rem;
-            background: black;
-        }
-        .info {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 0.5rem;
+
+        video { width: 100%; display: block; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            font-size: 0.8rem;
             text-align: left;
-            line-height: 1.5;
         }
-        .download-btn {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 10px 15px;
-            background-color: #28a745;
+
+        .stat-item {
+            background: #333;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .download-link {
+            display: block;
+            margin: 0 15px;
+            padding: 12px;
+            background: #28a745;
             color: white;
             text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            font-weight: bold;
         }
+
+        /* Spinner Animation */
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--secondary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Reel Downloader</h1>
-    <input type="text" id="igUrl" placeholder="Paste Instagram URL here...">
-    <button id="downloadBtn" onclick="fetchVideo()">Get Video</button>
+    <h1>InstaSnap</h1>
+    <p class="subtitle">Download Instagram Reels & Videos in seconds.</p>
     
+    <div class="input-group">
+        <input type="text" id="urlInput" placeholder="Paste link here (e.g. instagram.com/reels/...)">
+    </div>
+    
+    <button id="mainBtn" onclick="handleDownload()">Download Now</button>
+    
+    <div id="loader" class="spinner"></div>
     <div id="result"></div>
 </div>
 
 <script>
-    async function fetchVideo() {
-        const urlInput = document.getElementById('igUrl').value.trim();
-        const resultDiv = document.getElementById('result');
-        const btn = document.getElementById('downloadBtn');
+    async function handleDownload() {
+        const input = document.getElementById('urlInput');
+        const result = document.getElementById('result');
+        const loader = document.getElementById('loader');
+        const btn = document.getElementById('mainBtn');
+        
+        const url = input.value.trim();
+        if (!url) return alert("Please paste a URL!");
 
-        // Basic URL validation
-        if (!urlInput.match(/^(https?:\/\/)?(www\.)?(instagram\.com|instagr\.am)\/.*$/)) {
-            resultDiv.innerHTML = '<p class="error">Please enter a valid Instagram URL.</p>';
-            return;
-        }
-
-        // UI updates for loading
+        // Reset UI
+        result.innerHTML = "";
+        loader.style.display = "block";
         btn.disabled = true;
-        btn.innerText = "Processing...";
-        resultDiv.innerHTML = "<p>Fetching video details...</p>";
 
-        const apiUrl = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(urlInput)}`;
+        // Use a CORS proxy to bypass browser restrictions
+        const proxy = "https://corsproxy.io/?"; 
+        const apiUrl = `https://insta-dl.hazex.workers.dev/?url=${encodeURIComponent(url)}`;
 
         try {
-            const response = await fetch(apiUrl);
+            const response = await fetch(proxy + encodeURIComponent(apiUrl));
             const data = await response.json();
 
-            if (data.error) {
-                resultDiv.innerHTML = '<p class="error">Failed to extract video. It might be private or invalid.</p>';
+            if (data.error || !data.result) {
+                result.innerHTML = `<p style="color:#ff4d4d">Error: Could not find video. Check the link and try again.</p>`;
             } else {
-                const videoData = data.result;
-                
-                // Construct the result HTML
-                resultDiv.innerHTML = `
-                    <video controls>
-                        <source src="${videoData.url}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <div class="info">
-                        <strong>Quality:</strong> ${videoData.quality || 'N/A'}<br>
-                        <strong>Duration:</strong> ${videoData.duration || 'N/A'}<br>
-                        <strong>Size:</strong> ${videoData.formattedSize || 'N/A'}
+                const res = data.result;
+                result.innerHTML = `
+                    <div class="video-card">
+                        <video controls poster="${res.thumbnail || ''}">
+                            <source src="${res.url}" type="video/mp4">
+                        </video>
+                        <div class="stats">
+                            <div class="stat-item"><b>Quality:</b> ${res.quality || 'HD'}</div>
+                            <div class="stat-item"><b>Size:</b> ${res.formattedSize || 'N/A'}</div>
+                            <div class="stat-item"><b>Duration:</b> ${res.duration || 'N/A'}</div>
+                            <div class="stat-item"><b>Format:</b> ${res.extension || 'mp4'}</div>
+                        </div>
+                        <a href="${res.url}" class="download-link" target="_blank">SAVE TO DEVICE</a>
                     </div>
-                    <a href="${videoData.url}" class="download-btn" target="_blank" download="instagram_reel.mp4">
-                        Download Video
-                    </a>
                 `;
             }
-        } catch (error) {
-            console.error("Error:", error);
-            resultDiv.innerHTML = `<p class="error">An error occurred while connecting to the API.</p>`;
+        } catch (err) {
+            result.innerHTML = `<p style="color:#ff4d4d">Connection Error. Try again later.</p>`;
         } finally {
-            // Reset button state
+            loader.style.display = "none";
             btn.disabled = false;
-            btn.innerText = "Get Video";
         }
     }
 </script>
